@@ -1,1 +1,1 @@
-/usr/bin/c++  -s WASM=1 -s EXPORTED_FUNCTIONS=['_main'] -s EXPORTED_RUNTIME_METHODS=['cwrap'] -O3 -DNDEBUG -s WASM=1 -Wl,--dependency-file=CMakeFiles/test_parangonar_cpp.dir/link.d CMakeFiles/test_parangonar_cpp.dir/cpp/tests/test_matchers.cpp.o -o test_parangonar_cpp  libparangonar_cpp.a
+/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/test_parangonar_cpp.dir/link.d CMakeFiles/test_parangonar_cpp.dir/cpp/tests/test_matchers.cpp.o -o test_parangonar_cpp  libparangonar_cpp.a
