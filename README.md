@@ -1,46 +1,86 @@
 # Parangonar
 
-**Parangonar** is a Python package for symbolic music note alignment. 
-This package contains the AutomaticNoteMatcher algorithm for aligning musical score and performance data.
+**Parangonar** is a C++ library for symbolic music note alignment. 
+This library contains the AutomaticNoteMatcher algorithm for aligning musical score and performance data.
 
-## Installation
+## Building
 
-The easiest way to install the package is via `pip` from the [PyPI (Python
-Package Index)](https://pypi.org/project/parangonar/):
-```shell
-pip install parangonar
+### Prerequisites
+
+- CMake 3.14 or later
+- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- Optional: Eigen3 for optimized linear algebra (uses internal implementations if not found)
+
+### Standard Build
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
 ```
-This will install the latest release of the package and will install all dependencies automatically.
 
-## Getting Started
+### Run Tests
 
-**Parangonar** contains the AutomaticNoteMatcher algorithm:
+```bash
+# In build directory
+./test_parangonar_cpp
 
-- `AutomaticNoteMatcher`: 
-    Piano roll-based, hierarchical DTW and combinatorial optimization for pitch-wise note distribution.
-    Requires scores and performances in the current implementation.
+# Or with CTest
+ctest -V
+```
+
+### Emscripten Build
+
+```bash
+# Install emscripten first
+# https://emscripten.org/docs/getting_started/downloads.html
+
+mkdir build_emscripten
+cd build_emscripten
+emcmake cmake ..
+emmake make
+```
 
 ## Usage
 
-```python
-from parangonar import AutomaticNoteMatcher, fscore_alignments
-import partitura as pt
+```cpp
+#include <parangonar/matchers.hpp>
+#include <parangonar/note.hpp>
 
-# Load your score and performance
-score = pt.load_score('your_score.musicxml')
-performance = pt.load_performance('your_performance.mid')
+using namespace parangonar;
 
-# Create note arrays
-score_note_array = score.note_array()
-performance_note_array = performance.note_array()
+// Create note arrays (score and performance)
+NoteArray score_notes = ...;
+NoteArray performance_notes = ...;
 
-# Create and use the matcher
-matcher = AutomaticNoteMatcher()
-alignment = matcher(score_note_array, performance_note_array)
+// Create matcher with default configuration
+AutomaticNoteMatcher matcher;
 
-# Evaluate if you have ground truth
-# f_score = fscore_alignments(alignment, ground_truth, "match")
+// Or with custom configuration
+AutomaticNoteMatcherConfig config;
+config.sfuzziness = 2.0f;
+config.alignment_type = "dtw";
+AutomaticNoteMatcher custom_matcher(config);
+
+// Perform alignment
+auto alignment = matcher(score_notes, performance_notes);
+
+// Evaluate results (if you have ground truth)
+auto ground_truth = ...;
+auto fscore_result = evaluation::fscore_matches(alignment, ground_truth);
+std::cout << "F-score: " << fscore_result.f_score << std::endl;
 ```
+
+## Algorithms
+
+The C++ implementation includes:
+
+- **AutomaticNoteMatcher**: Piano roll-based, hierarchical DTW and combinatorial optimization for pitch-wise note distribution
+- **Dynamic Time Warping**: Multiple DTW implementations with custom step patterns and weights
+- **Evaluation**: F-score based evaluation supporting match, insertion, and deletion evaluation
+
+For detailed documentation, see [cpp/README.md](cpp/README.md).
 
 ## License
 
