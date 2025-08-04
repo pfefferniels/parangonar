@@ -1,0 +1,2 @@
+/usr/bin/ar qc libparangonar_cpp.a CMakeFiles/parangonar_cpp.dir/cpp/src/note.cpp.o CMakeFiles/parangonar_cpp.dir/cpp/src/dtw.cpp.o CMakeFiles/parangonar_cpp.dir/cpp/src/matchers.cpp.o CMakeFiles/parangonar_cpp.dir/cpp/src/preprocessors.cpp.o
+/usr/bin/ranlib libparangonar_cpp.a
