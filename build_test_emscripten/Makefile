@@ -152,6 +152,19 @@ test_parangonar_cpp/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parangonar_cpp.dir/build.make CMakeFiles/test_parangonar_cpp.dir/build
 .PHONY : test_parangonar_cpp/fast
 
+#=============================================================================
+# Target rules for targets named test_wasm_api
+
+# Build rule for target.
+test_wasm_api: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_wasm_api
+.PHONY : test_wasm_api
+
+# fast build rule for target.
+test_wasm_api/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_wasm_api.dir/build.make CMakeFiles/test_wasm_api.dir/build
+.PHONY : test_wasm_api/fast
+
 cpp/src/dtw.o: cpp/src/dtw.cpp.o
 .PHONY : cpp/src/dtw.o
 
@@ -272,6 +285,30 @@ cpp/tests/test_matchers.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parangonar_cpp.dir/build.make CMakeFiles/test_parangonar_cpp.dir/cpp/tests/test_matchers.cpp.s
 .PHONY : cpp/tests/test_matchers.cpp.s
 
+cpp/tests/test_wasm_api.o: cpp/tests/test_wasm_api.cpp.o
+.PHONY : cpp/tests/test_wasm_api.o
+
+# target to build an object file
+cpp/tests/test_wasm_api.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_wasm_api.dir/build.make CMakeFiles/test_wasm_api.dir/cpp/tests/test_wasm_api.cpp.o
+.PHONY : cpp/tests/test_wasm_api.cpp.o
+
+cpp/tests/test_wasm_api.i: cpp/tests/test_wasm_api.cpp.i
+.PHONY : cpp/tests/test_wasm_api.i
+
+# target to preprocess a source file
+cpp/tests/test_wasm_api.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_wasm_api.dir/build.make CMakeFiles/test_wasm_api.dir/cpp/tests/test_wasm_api.cpp.i
+.PHONY : cpp/tests/test_wasm_api.cpp.i
+
+cpp/tests/test_wasm_api.s: cpp/tests/test_wasm_api.cpp.s
+.PHONY : cpp/tests/test_wasm_api.s
+
+# target to generate assembly for a file
+cpp/tests/test_wasm_api.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_wasm_api.dir/build.make CMakeFiles/test_wasm_api.dir/cpp/tests/test_wasm_api.cpp.s
+.PHONY : cpp/tests/test_wasm_api.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -283,6 +320,7 @@ help:
 	@echo "... test"
 	@echo "... parangonar_cpp"
 	@echo "... test_parangonar_cpp"
+	@echo "... test_wasm_api"
 	@echo "... cpp/src/dtw.o"
 	@echo "... cpp/src/dtw.i"
 	@echo "... cpp/src/dtw.s"
@@ -298,6 +336,9 @@ help:
 	@echo "... cpp/tests/test_matchers.o"
 	@echo "... cpp/tests/test_matchers.i"
 	@echo "... cpp/tests/test_matchers.s"
+	@echo "... cpp/tests/test_wasm_api.o"
+	@echo "... cpp/tests/test_wasm_api.i"
+	@echo "... cpp/tests/test_wasm_api.s"
 .PHONY : help
 
 
