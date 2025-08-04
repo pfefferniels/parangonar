@@ -54,6 +54,22 @@ This generates:
 
 See `build_emscripten/README.md` for detailed WASM usage instructions.
 
+### Web Example
+
+A complete HTML example demonstrating WASM usage in a web browser is available:
+
+```bash
+# After building WASM files, copy them to root directory
+cp build_emscripten/parangonar.js .
+cp build_emscripten/parangonar.wasm .
+
+# Start a web server and open example.html
+python3 -m http.server 8000
+# Then visit http://localhost:8000/example.html
+```
+
+See `WASM_EXAMPLE.md` for complete documentation of the web example.
+
 ## Usage
 
 ### C++ Library
