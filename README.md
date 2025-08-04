@@ -1,7 +1,11 @@
-# Parangonar
+# Parangonar C++ Port
 
-**Parangonar** is a C++ library for symbolic music note alignment. 
-This library contains the AutomaticNoteMatcher algorithm for aligning musical score and performance data.
+This is a C++ port of the Python-based library [parangonar](https://github.com/sildater/parangonar)
+for symbolic music note alignment. It's specific purpose is to be compiled with emscripten to WebAssembly, 
+so that it can be used from within the browser.
+
+This port only implements the AutomaticNoteMatcher algorithm for aligning musical score and performance data.
+The port was created for the most part using Gihub's Copilot Agent Mode.
 
 ## Building
 
