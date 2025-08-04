@@ -2,22 +2,6 @@
 
 This directory contains a complete HTML example demonstrating how to use the Parangonar WebAssembly module for musical note alignment in a web browser.
 
-## Files
-
-- `example.html` - Interactive web page demonstrating WASM usage
-- `parangonar.js` - Generated JavaScript interface for the WASM module  
-- `parangonar.wasm` - Compiled WebAssembly binary
-
-## Features
-
-The example provides a complete interactive interface for:
-
-1. **Score Notes Input**: Enter musical score notes with onset (beats), duration (beats), pitch (MIDI number), and ID
-2. **Performance Notes Input**: Enter performance notes with onset (seconds), duration (seconds), pitch, velocity, and ID
-3. **Configuration**: Adjust alignment parameters (score fuzziness, performance fuzziness, window size)
-4. **Alignment**: Perform note alignment using the AutomaticNoteMatcher algorithm
-5. **Results Display**: View alignment results showing matches, insertions, and deletions
-
 ## Running the Example
 
 ### Prerequisites
@@ -38,21 +22,13 @@ The example provides a complete interactive interface for:
 
 ### Local Testing
 
-Since browsers enforce CORS restrictions, you cannot open the HTML file directly. Instead:
+Since browsers enforce CORS restrictions, you cannot open the HTML file directly. Start a local web server:
 
-1. Start a local web server:
-   ```bash
-   python3 -m http.server 8000
-   # or
-   npx http-server
-   # or  
-   php -S localhost:8000
-   ```
+```bash
+python3 -m http.server 8000
+```
 
-2. Open your browser and navigate to:
-   ```
-   http://localhost:8000/example.html
-   ```
+Then open your browser and navigate to `http://localhost:8000/example.html`.
 
 ## Usage
 
