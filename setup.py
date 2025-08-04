@@ -18,11 +18,7 @@ VERSION = "3.1.0"
 REQUIRED = [
     "numpy",
     "scipy",
-    "torch",
-    "matplotlib",
     "partitura>=1.6.0",
-    "symusic",
-    "miditok",
     "numba",
 ]
 
@@ -54,13 +50,7 @@ setup(
     url=URL,
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(exclude=("tests",)),
-    package_data={
-        "parangonar": [
-            "assets/mozart_k265_var1.match",
-            "assets/alignment_transformer_checkpoint.pt",
-            "assets/thegluenote_small_checkpoint.pt",
-        ]
-    },
+    package_data={},
     install_requires=REQUIRED,
     extras_require={},
     include_package_data=True,
