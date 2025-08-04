@@ -33,6 +33,26 @@ add_library(parangonar_cpp
     cpp/src/preprocessors.cpp
 )
 
+# Add WASM bindings library for Emscripten builds
+if(EMSCRIPTEN)
+    add_executable(parangonar_wasm
+        cpp/src/note.cpp
+        cpp/src/dtw.cpp
+        cpp/src/matchers.cpp
+        cpp/src/preprocessors.cpp
+        cpp/src/wasm_bindings.cpp
+    )
+    
+    target_include_directories(parangonar_wasm PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include
+    )
+    
+    if(Eigen3_FOUND)
+        target_link_libraries(parangonar_wasm Eigen3::Eigen)
+        target_compile_definitions(parangonar_wasm PUBLIC USE_EIGEN)
+    endif()
+endif()
+
 # Add include directories to library
 target_include_directories(parangonar_cpp PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cpp/include
@@ -51,13 +71,31 @@ add_executable(test_parangonar_cpp
 
 target_link_libraries(test_parangonar_cpp parangonar_cpp)
 
+# Add WASM API test
+add_executable(test_wasm_api
+    cpp/tests/test_wasm_api.cpp
+)
+
+target_link_libraries(test_wasm_api parangonar_cpp)
+
 # Enable testing
 enable_testing()
 add_test(NAME parangonar_tests COMMAND test_parangonar_cpp)
+add_test(NAME wasm_api_tests COMMAND test_wasm_api)
 
 # Emscripten configuration
 if(EMSCRIPTEN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=1 -s EXPORTED_FUNCTIONS=['_main'] -s EXPORTED_RUNTIME_METHODS=['cwrap']")
-    set_target_properties(parangonar_cpp PROPERTIES LINK_FLAGS "-s WASM=1")
+    # Base Emscripten flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=1 --bind")
+    
+    # Set link flags for the WASM library
+    set_target_properties(parangonar_wasm PROPERTIES 
+        LINK_FLAGS "-s WASM=1 --bind -s MODULARIZE=1 -s EXPORT_NAME='ParangonarModule' -s ENVIRONMENT=web,node -s ALLOW_MEMORY_GROWTH=1"
+    )
+    
+    # Set output name
+    set_target_properties(parangonar_wasm PROPERTIES OUTPUT_NAME "parangonar")
+    
+    # Keep the test executable simple
     set_target_properties(test_parangonar_cpp PROPERTIES LINK_FLAGS "-s WASM=1")
 endif()
