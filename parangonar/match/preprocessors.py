@@ -10,7 +10,6 @@ from scipy.interpolate import interp1d
 from partitura.utils.music import compute_pianoroll
 
 from ..dp.dtw import DTW
-from ..dp.nwtw import NW_DTW, NW
 
 
 ################################### HELPERS ###################################
@@ -57,23 +56,6 @@ def alignment_times_from_dtw(
     _, path = matcher(s_pianoroll.T, p_pianoroll_ones.T)
     # compute an alignment of times using the DTW path
     path_array = np.array(path)
-
-    # Post-process path for NW-DTW (insertion and deletions
-    # are denoted as -1 in the path)
-    if isinstance(matcher, (NW_DTW, NW)):
-        valid_idxs = np.where(
-            np.logical_and(path_array[:, 0] != -1, path_array[:, 1] != -1)
-        )[0]
-        path_array = path_array[valid_idxs]
-
-        if len(path_array) == 0:
-            path_array = np.array(
-                [
-                    (path[:, 0].min(), path[:, 1].min()),
-                    (path[:, 1].max(), path[:, 1].max()),
-                ],
-                dtype=int,
-            )
 
     times_score = path_array[:, 0] / s_time_div
     times_performance = path_array[:, 1] / p_time_div

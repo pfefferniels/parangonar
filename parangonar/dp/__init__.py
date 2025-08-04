@@ -6,4 +6,3 @@ for sequence alignment.
 """
 
 from .dtw import DTW, DTWSL
-from .nwtw import NW_DTW, NW

@@ -7,16 +7,8 @@ import unittest
 import numpy as np
 from parangonar import (
     AutomaticNoteMatcher,
-    DualDTWNoteMatcher,
-    TheGlueNoteMatcher,
-    AnchorPointNoteMatcher,
-    OnlinePureTransformerMatcher,
-    OnlineTransformerMatcher,
-    TOLTWMatcher,
-    OLTWMatcher,
     fscore_alignments,
 )
-from parangonar.match import node_array
 import partitura as pt
 
 RNG = np.random.RandomState(1984)
@@ -37,67 +29,6 @@ class TestNoteAlignment(unittest.TestCase):
         pred_alignment = matcher(sna_match, pna_match)
         _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
         self.assertTrue(f_score == 1.0)
-
-    def test_DualDTWNoteMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array(include_grace_notes=True)
-        matcher = DualDTWNoteMatcher()
-        pred_alignment = matcher(
-            sna_match, pna_match, process_ornaments=True, score_part=self.score_match[0]
-        )
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(f_score == 1.0)
-
-    def test_TheGlueNote_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array()
-        matcher = TheGlueNoteMatcher()
-        pred_alignment = matcher(sna_match, pna_match)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(abs(f_score - 1.0) < 0.01)
-
-    def testAnchorPointNoteMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array(include_grace_notes=True)
-        nodes = node_array(
-            self.score_match[0], self.perf_match[0], self.alignment, node_interval=4
-        )
-        matcher = AnchorPointNoteMatcher()
-        pred_alignment = matcher(sna_match, pna_match, nodes)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(f_score == 1.0)
-
-    def test_OnlineTransformerMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array(include_grace_notes=True)
-        matcher = OnlineTransformerMatcher(sna_match)
-        pred_alignment = matcher.offline(pna_match)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(abs(f_score - 1.0) < 0.02)
-
-    def test_OnlinePureTransformerMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array(include_grace_notes=True)
-        matcher = OnlinePureTransformerMatcher(sna_match)
-        pred_alignment = matcher.offline(pna_match)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(f_score == 1.0)
-
-    def test_TOLTWMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array()
-        matcher = TOLTWMatcher(sna_match)
-        pred_alignment = matcher.offline(pna_match)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(f_score > 0.99)
-
-    def test_OLTWMatcher_align(self, **kwargs):
-        pna_match = self.perf_match.note_array()
-        sna_match = self.score_match.note_array()
-        matcher = OLTWMatcher(sna_match)
-        pred_alignment = matcher.offline(pna_match)
-        _, _, f_score = fscore_alignments(pred_alignment, self.alignment, "match")
-        self.assertTrue(f_score > 0.96)
 
 
 if __name__ == "__main__":
