@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parangonar WASM Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .note-input {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .note-input input {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #005a87;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007cba;
+        }
+        .error {
+            background-color: #ffe6e6;
+            border-left: 4px solid #d32f2f;
+            color: #d32f2f;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .note-list {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .note-item {
+            background-color: white;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 3px;
+            border-left: 3px solid #007cba;
+        }
+        .alignment-result {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            padding: 8px;
+            background-color: white;
+            border-radius: 3px;
+        }
+        .alignment-match { border-left: 3px solid #4caf50; }
+        .alignment-insertion { border-left: 3px solid #ff9800; }
+        .alignment-deletion { border-left: 3px solid #f44336; }
+        .status {
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Parangonar WASM Demo</h1>
+        <p>This example demonstrates how to use the Parangonar WebAssembly module for musical note alignment from a web browser.</p>
+        
+        <div id="loading" class="loading">
+            <p>Loading Parangonar WASM module...</p>
+        </div>
+        
+        <div id="main-content" style="display: none;">
+            <div class="container">
+                <h2>Score Notes</h2>
+                <p>Enter musical score notes (onset in beats, duration in beats, pitch as MIDI number, ID)</p>
+                <div id="score-notes">
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (beats)" step="0.1" value="0.0">
+                        <input type="number" placeholder="Duration (beats)" step="0.1" value="1.0">
+                        <input type="number" placeholder="Pitch (MIDI)" value="60">
+                        <input type="text" placeholder="Note ID" value="s1">
+                    </div>
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (beats)" step="0.1" value="1.0">
+                        <input type="number" placeholder="Duration (beats)" step="0.1" value="1.0">
+                        <input type="number" placeholder="Pitch (MIDI)" value="64">
+                        <input type="text" placeholder="Note ID" value="s2">
+                    </div>
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (beats)" step="0.1" value="2.0">
+                        <input type="number" placeholder="Duration (beats)" step="0.1" value="1.0">
+                        <input type="number" placeholder="Pitch (MIDI)" value="67">
+                        <input type="text" placeholder="Note ID" value="s3">
+                    </div>
+                </div>
+                <button onclick="addScoreNote()">Add Score Note</button>
+                <div id="score-note-list" class="note-list"></div>
+            </div>
+
+            <div class="container">
+                <h2>Performance Notes</h2>
+                <p>Enter performance notes (onset in seconds, duration in seconds, pitch as MIDI number, velocity, ID)</p>
+                <div id="performance-notes">
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (sec)" step="0.01" value="0.1">
+                        <input type="number" placeholder="Duration (sec)" step="0.01" value="0.9">
+                        <input type="number" placeholder="Pitch (MIDI)" value="60">
+                        <input type="number" placeholder="Velocity" value="80">
+                        <input type="text" placeholder="Note ID" value="p1">
+                    </div>
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (sec)" step="0.01" value="1.1">
+                        <input type="number" placeholder="Duration (sec)" step="0.01" value="0.8">
+                        <input type="number" placeholder="Pitch (MIDI)" value="64">
+                        <input type="number" placeholder="Velocity" value="75">
+                        <input type="text" placeholder="Note ID" value="p2">
+                    </div>
+                    <div class="note-input">
+                        <input type="number" placeholder="Onset (sec)" step="0.01" value="2.2">
+                        <input type="number" placeholder="Duration (sec)" step="0.01" value="0.7">
+                        <input type="number" placeholder="Pitch (MIDI)" value="67">
+                        <input type="number" placeholder="Velocity" value="85">
+                        <input type="text" placeholder="Note ID" value="p3">
+                    </div>
+                </div>
+                <button onclick="addPerformanceNote()">Add Performance Note</button>
+                <div id="performance-note-list" class="note-list"></div>
+            </div>
+
+            <div class="container">
+                <h2>Alignment Configuration</h2>
+                <div class="note-input">
+                    <label>Score Fuzziness: <input type="number" id="sfuzziness" step="0.1" value="2.0"></label>
+                    <label>Performance Fuzziness: <input type="number" id="pfuzziness" step="0.1" value="2.0"></label>
+                    <label>Window Size: <input type="number" id="windowSize" value="4"></label>
+                </div>
+            </div>
+
+            <div class="container">
+                <button onclick="performAlignment()" id="align-btn">Perform Note Alignment</button>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let Module = null;
+        let scoreNotes = [];
+        let performanceNotes = [];
+
+        // Load the Parangonar WASM module
+        async function loadParangonarModule() {
+            try {
+                // Load the module using script tag since it uses UMD pattern
+                const script = document.createElement('script');
+                script.src = './parangonar.js';
+                
+                Module = await new Promise((resolve, reject) => {
+                    script.onload = () => {
+                        // Module should be available as global ParangonarModule
+                        if (typeof ParangonarModule !== 'undefined') {
+                            const moduleConfig = {
+                                onRuntimeInitialized: function() {
+                                    resolve(this);
+                                }
+                            };
+                            ParangonarModule(moduleConfig);
+                        } else {
+                            reject(new Error('ParangonarModule not found after loading script'));
+                        }
+                    };
+                    script.onerror = () => reject(new Error('Failed to load parangonar.js'));
+                    document.head.appendChild(script);
+                });
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                
+                displayResults('Module loaded successfully!', false);
+                updateNoteLists();
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    <div class="results error">
+                        <h3>Error loading WASM module:</h3>
+                        <p>${error.message}</p>
+                        <p><strong>Note:</strong> This example requires the parangonar.js and parangonar.wasm files to be served from a web server. 
+                        You cannot run this directly by opening the HTML file in a browser due to CORS restrictions.</p>
+                        <p><strong>To test this example:</strong></p>
+                        <ol>
+                            <li>Make sure parangonar.js and parangonar.wasm are in the same directory as this HTML file</li>
+                            <li>Serve the directory using a web server (e.g., <code>python3 -m http.server 8000</code>)</li>
+                            <li>Open http://localhost:8000/example.html in your browser</li>
+                        </ol>
+                        <p><strong>Debug info:</strong> ${JSON.stringify(error)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function addScoreNote() {
+            const container = document.getElementById('score-notes');
+            const newNote = document.createElement('div');
+            newNote.className = 'note-input';
+            newNote.innerHTML = `
+                <input type="number" placeholder="Onset (beats)" step="0.1" value="0.0">
+                <input type="number" placeholder="Duration (beats)" step="0.1" value="1.0">
+                <input type="number" placeholder="Pitch (MIDI)" value="60">
+                <input type="text" placeholder="Note ID" value="s${container.children.length + 1}">
+            `;
+            container.appendChild(newNote);
+        }
+
+        function addPerformanceNote() {
+            const container = document.getElementById('performance-notes');
+            const newNote = document.createElement('div');
+            newNote.className = 'note-input';
+            newNote.innerHTML = `
+                <input type="number" placeholder="Onset (sec)" step="0.01" value="0.0">
+                <input type="number" placeholder="Duration (sec)" step="0.01" value="1.0">
+                <input type="number" placeholder="Pitch (MIDI)" value="60">
+                <input type="number" placeholder="Velocity" value="80">
+                <input type="text" placeholder="Note ID" value="p${container.children.length + 1}">
+            `;
+            container.appendChild(newNote);
+        }
+
+        function collectScoreNotes() {
+            const noteArray = new Module.NoteArray();
+            const inputs = document.querySelectorAll('#score-notes .note-input');
+            
+            inputs.forEach(noteInput => {
+                const values = Array.from(noteInput.querySelectorAll('input')).map(input => input.value);
+                if (values.every(v => v.trim() !== '')) {
+                    const [onset, duration, pitch, id] = values;
+                    const note = Module.createScoreNote(
+                        parseFloat(onset),
+                        parseFloat(duration),
+                        parseInt(pitch),
+                        id
+                    );
+                    noteArray.push_back(note);
+                }
+            });
+            
+            return noteArray;
+        }
+
+        function collectPerformanceNotes() {
+            const noteArray = new Module.NoteArray();
+            const inputs = document.querySelectorAll('#performance-notes .note-input');
+            
+            inputs.forEach(noteInput => {
+                const values = Array.from(noteInput.querySelectorAll('input')).map(input => input.value);
+                if (values.every(v => v.trim() !== '')) {
+                    const [onset, duration, pitch, velocity, id] = values;
+                    const note = Module.createPerformanceNote(
+                        parseFloat(onset),
+                        parseFloat(duration),
+                        parseInt(pitch),
+                        parseInt(velocity),
+                        id
+                    );
+                    noteArray.push_back(note);
+                }
+            });
+            
+            return noteArray;
+        }
+
+        function updateNoteLists() {
+            // Update score notes display
+            const scoreList = document.getElementById('score-note-list');
+            const scoreInputs = document.querySelectorAll('#score-notes .note-input');
+            let scoreHtml = '<h4>Current Score Notes:</h4>';
+            
+            scoreInputs.forEach((noteInput, index) => {
+                const values = Array.from(noteInput.querySelectorAll('input')).map(input => input.value);
+                if (values.every(v => v.trim() !== '')) {
+                    const [onset, duration, pitch, id] = values;
+                    scoreHtml += `<div class="note-item">
+                        ${id}: Pitch ${pitch}, Onset ${onset}♩, Duration ${duration}♩
+                    </div>`;
+                }
+            });
+            scoreList.innerHTML = scoreHtml;
+
+            // Update performance notes display
+            const perfList = document.getElementById('performance-note-list');
+            const perfInputs = document.querySelectorAll('#performance-notes .note-input');
+            let perfHtml = '<h4>Current Performance Notes:</h4>';
+            
+            perfInputs.forEach((noteInput, index) => {
+                const values = Array.from(noteInput.querySelectorAll('input')).map(input => input.value);
+                if (values.every(v => v.trim() !== '')) {
+                    const [onset, duration, pitch, velocity, id] = values;
+                    perfHtml += `<div class="note-item">
+                        ${id}: Pitch ${pitch}, Onset ${onset}s, Duration ${duration}s, Velocity ${velocity}
+                    </div>`;
+                }
+            });
+            perfList.innerHTML = perfHtml;
+        }
+
+        function performAlignment() {
+            if (!Module) {
+                displayResults('WASM module not loaded yet!', true);
+                return;
+            }
+
+            try {
+                const scoreNoteArray = collectScoreNotes();
+                const performanceNoteArray = collectPerformanceNotes();
+
+                if (scoreNoteArray.size() === 0 || performanceNoteArray.size() === 0) {
+                    displayResults('Please add both score and performance notes before aligning.', true);
+                    return;
+                }
+
+                // Create configuration
+                const config = new Module.AutomaticNoteMatcherConfig();
+                config.sfuzziness = parseFloat(document.getElementById('sfuzziness').value);
+                config.pfuzziness = parseFloat(document.getElementById('pfuzziness').value);
+                config.window_size = parseInt(document.getElementById('windowSize').value);
+
+                // Perform alignment
+                const alignment = Module.align(scoreNoteArray, performanceNoteArray, config);
+
+                displayAlignmentResults(alignment);
+
+                // Clean up
+                scoreNoteArray.delete();
+                performanceNoteArray.delete();
+                alignment.delete();
+                config.delete();
+
+            } catch (error) {
+                displayResults(`Error during alignment: ${error.message}`, true);
+                console.error('Alignment error:', error);
+            }
+        }
+
+        function displayResults(message, isError = false) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<div class="results ${isError ? 'error' : ''}">
+                <h3>${isError ? 'Error' : 'Info'}</h3>
+                <p>${message}</p>
+            </div>`;
+        }
+
+        function displayAlignmentResults(alignment) {
+            const resultsDiv = document.getElementById('results');
+            let html = '<div class="results"><h3>Alignment Results</h3>';
+            
+            html += `<p><strong>Total alignments found:</strong> ${alignment.size()}</p>`;
+            
+            if (alignment.size() > 0) {
+                html += '<h4>Detailed Alignments:</h4>';
+                
+                for (let i = 0; i < alignment.size(); i++) {
+                    const align = alignment.get(i);
+                    const labelText = align.label === Module.AlignmentLabel.MATCH ? 'MATCH' :
+                                    align.label === Module.AlignmentLabel.INSERTION ? 'INSERTION' :
+                                    'DELETION';
+                    
+                    const labelClass = labelText.toLowerCase();
+                    
+                    html += `<div class="alignment-result alignment-${labelClass}">
+                        <span class="status">${labelText}</span>
+                        <span>Score: "${align.score_id}" ↔ Performance: "${align.performance_id}"</span>
+                    </div>`;
+                }
+            }
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // Add event listeners to update note lists when inputs change
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('#score-notes input, #performance-notes input')) {
+                updateNoteLists();
+            }
+        });
+
+        // Initialize the module when the page loads
+        loadParangonarModule();
+    </script>
+</body>
+</html>
