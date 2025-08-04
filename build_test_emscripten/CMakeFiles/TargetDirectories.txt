@@ -1,0 +1,5 @@
+/home/runner/work/parangonar/parangonar/build_test_emscripten/CMakeFiles/parangonar_cpp.dir
+/home/runner/work/parangonar/parangonar/build_test_emscripten/CMakeFiles/test_parangonar_cpp.dir
+/home/runner/work/parangonar/parangonar/build_test_emscripten/CMakeFiles/test.dir
+/home/runner/work/parangonar/parangonar/build_test_emscripten/CMakeFiles/edit_cache.dir
+/home/runner/work/parangonar/parangonar/build_test_emscripten/CMakeFiles/rebuild_cache.dir
