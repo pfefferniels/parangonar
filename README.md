@@ -39,14 +39,24 @@ ctest -V
 ```bash
 # Install emscripten first
 # https://emscripten.org/docs/getting_started/downloads.html
+# Or: sudo apt install emscripten
 
 mkdir build_emscripten
 cd build_emscripten
 emcmake cmake ..
-emmake make
+emmake make parangonar_wasm
 ```
 
+This generates:
+- `parangonar.js` - WASM module JavaScript interface
+- `parangonar.wasm` - WebAssembly binary
+- `parangonar-wrapper.js` - High-level JavaScript/TypeScript wrapper
+
+See `build_emscripten/README.md` for detailed WASM usage instructions.
+
 ## Usage
+
+### C++ Library
 
 ```cpp
 #include <parangonar/matchers.hpp>
@@ -75,6 +85,43 @@ auto ground_truth = ...;
 auto fscore_result = evaluation::fscore_matches(alignment, ground_truth);
 std::cout << "F-score: " << fscore_result.f_score << std::endl;
 ```
+
+### WebAssembly (JavaScript/TypeScript)
+
+```javascript
+// Simple browser usage
+const Module = {
+    onRuntimeInitialized: function() {
+        // Create notes
+        const scoreNotes = new Module.NoteArray();
+        scoreNotes.push_back(Module.createScoreNote(0.0, 0.5, 60, "C4"));
+        
+        const perfNotes = new Module.NoteArray();
+        perfNotes.push_back(Module.createPerformanceNote(0.1, 0.4, 60, 70, "p1"));
+        
+        // Align notes
+        const alignment = Module.match(scoreNotes, perfNotes);
+        
+        // Process results...
+    }
+};
+```
+
+Or using the high-level wrapper:
+
+```javascript
+import { createAligner } from './parangonar-wrapper.js';
+
+const aligner = createAligner(() => import('./parangonar.js'));
+await aligner.ready();
+
+const alignment = aligner.align(scoreNotes, performanceNotes, {
+    sfuzziness: 4.0,
+    pfuzziness: 4.0
+});
+```
+
+See `build_emscripten/README.md` for complete WASM documentation.
 
 ## Algorithms
 
