@@ -4,18 +4,19 @@
 #include <cmath>
 
 namespace parangonar {
+namespace note_array {
 
-NoteArray NoteArray::filter_by_pitch(int pitch) const {
+NoteArray filter_by_pitch(const NoteArray& notes, int pitch) {
     NoteArray result;
     for (const auto& note : notes) {
         if (note.pitch == pitch) {
-            result.notes.push_back(note);
+            result.push_back(note);
         }
     }
     return result;
 }
 
-std::vector<int> NoteArray::unique_pitches() const {
+std::vector<int> unique_pitches(const NoteArray& notes) {
     std::set<int> pitch_set;
     for (const auto& note : notes) {
         pitch_set.insert(note.pitch);
@@ -23,7 +24,7 @@ std::vector<int> NoteArray::unique_pitches() const {
     return std::vector<int>(pitch_set.begin(), pitch_set.end());
 }
 
-std::vector<float> NoteArray::onset_times_beat() const {
+std::vector<float> onset_times_beat(const NoteArray& notes) {
     std::vector<float> times;
     times.reserve(notes.size());
     for (const auto& note : notes) {
@@ -32,7 +33,7 @@ std::vector<float> NoteArray::onset_times_beat() const {
     return times;
 }
 
-std::vector<float> NoteArray::onset_times_sec() const {
+std::vector<float> onset_times_sec(const NoteArray& notes) {
     std::vector<float> times;
     times.reserve(notes.size());
     for (const auto& note : notes) {
@@ -41,7 +42,7 @@ std::vector<float> NoteArray::onset_times_sec() const {
     return times;
 }
 
-std::vector<std::vector<float>> NoteArray::compute_pianoroll(int time_div, bool remove_drums) const {
+std::vector<std::vector<float>> compute_pianoroll(const NoteArray& notes, int time_div, bool remove_drums) {
     if (notes.empty()) {
         return {};
     }
@@ -91,4 +92,5 @@ std::vector<std::vector<float>> NoteArray::compute_pianoroll(int time_div, bool 
     return pianoroll;
 }
 
+} // namespace note_array
 } // namespace parangonar

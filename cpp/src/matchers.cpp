@@ -17,12 +17,12 @@ AlignmentVector SimplestGreedyMatcher::operator()(
     std::set<std::string> performance_aligned;
     std::set<std::string> score_aligned;
     
-    for (const auto& score_note : score_notes.notes) {
+    for (const auto& score_note : score_notes) {
         std::string performance_id;
         bool found_match = false;
         
         // Find matching pitches
-        for (const auto& perf_note : performance_notes.notes) {
+        for (const auto& perf_note : performance_notes) {
             if (score_note.pitch == perf_note.pitch &&
                 performance_aligned.find(perf_note.id) == performance_aligned.end()) {
                 performance_id = perf_note.id;
@@ -41,7 +41,7 @@ AlignmentVector SimplestGreedyMatcher::operator()(
     }
     
     // Add unaligned performance notes as insertions
-    for (const auto& perf_note : performance_notes.notes) {
+    for (const auto& perf_note : performance_notes) {
         if (performance_aligned.find(perf_note.id) == performance_aligned.end()) {
             alignment.emplace_back(Alignment::Label::INSERTION, "", perf_note.id);
         }
@@ -187,18 +187,18 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
     preprocessors::LinearInterpolator interpolator(score_times, perf_times);
     
     // Get unique pitches from score
-    auto unique_pitches = score_notes.unique_pitches();
+    auto unique_pitches = note_array::unique_pitches(score_notes);
     
     for (int pitch : unique_pitches) {
-        auto score_pitch_notes = score_notes.filter_by_pitch(pitch);
-        auto perf_pitch_notes = performance_notes.filter_by_pitch(pitch);
+        auto score_pitch_notes = note_array::filter_by_pitch(score_notes, pitch);
+        auto perf_pitch_notes = note_array::filter_by_pitch(performance_notes, pitch);
         
         if (score_pitch_notes.empty() || perf_pitch_notes.empty()) {
             // Handle empty cases
-            for (const auto& note : score_pitch_notes.notes) {
+            for (const auto& note : score_pitch_notes) {
                 alignment.emplace_back(Alignment::Label::DELETION, note.id);
             }
-            for (const auto& note : perf_pitch_notes.notes) {
+            for (const auto& note : perf_pitch_notes) {
                 alignment.emplace_back(Alignment::Label::INSERTION, "", note.id);
                 performance_aligned.insert(note.id);
             }
@@ -206,8 +206,8 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
         }
         
         // Get onset times and sort
-        std::vector<float> score_onsets = score_pitch_notes.onset_times_beat();
-        std::vector<float> perf_onsets = perf_pitch_notes.onset_times_sec();
+        std::vector<float> score_onsets = note_array::onset_times_beat(score_pitch_notes);
+        std::vector<float> perf_onsets = note_array::onset_times_sec(perf_pitch_notes);
         
         // Convert score onsets to performance time domain
         auto score_onsets_converted = interpolator.interpolate(score_onsets);
@@ -243,8 +243,8 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
         if (score_count == perf_count) {
             // Equal number of notes - align all
             for (size_t i = 0; i < common_count; ++i) {
-                const auto& score_note = score_pitch_notes.notes[score_indices[i]];
-                const auto& perf_note = perf_pitch_notes.notes[perf_indices[i]];
+                const auto& score_note = score_pitch_notes[score_indices[i]];
+                const auto& perf_note = perf_pitch_notes[perf_indices[i]];
                 alignment.emplace_back(Alignment::Label::MATCH, score_note.id, perf_note.id);
                 performance_aligned.insert(perf_note.id);
             }
@@ -266,11 +266,11 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
                 // Score has more notes
                 size_t perf_idx = 0;
                 for (size_t score_idx = 0; score_idx < score_count; ++score_idx) {
-                    const auto& score_note = score_pitch_notes.notes[score_indices[score_idx]];
+                    const auto& score_note = score_pitch_notes[score_indices[score_idx]];
                     
                     if (omit_set.find(score_idx) == omit_set.end() && perf_idx < perf_count) {
                         // Align this score note
-                        const auto& perf_note = perf_pitch_notes.notes[perf_indices[perf_idx]];
+                        const auto& perf_note = perf_pitch_notes[perf_indices[perf_idx]];
                         alignment.emplace_back(Alignment::Label::MATCH, score_note.id, perf_note.id);
                         performance_aligned.insert(perf_note.id);
                         perf_idx++;
@@ -283,11 +283,11 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
                 // Performance has more notes
                 size_t score_idx = 0;
                 for (size_t perf_idx = 0; perf_idx < perf_count; ++perf_idx) {
-                    const auto& perf_note = perf_pitch_notes.notes[perf_indices[perf_idx]];
+                    const auto& perf_note = perf_pitch_notes[perf_indices[perf_idx]];
                     
                     if (omit_set.find(perf_idx) == omit_set.end() && score_idx < score_count) {
                         // Align this performance note
-                        const auto& score_note = score_pitch_notes.notes[score_indices[score_idx]];
+                        const auto& score_note = score_pitch_notes[score_indices[score_idx]];
                         alignment.emplace_back(Alignment::Label::MATCH, score_note.id, perf_note.id);
                         performance_aligned.insert(perf_note.id);
                         score_idx++;
@@ -302,7 +302,7 @@ AlignmentVector SequenceAugmentedGreedyMatcher::operator()(
     }
     
     // Add any unaligned performance notes as insertions
-    for (const auto& perf_note : performance_notes.notes) {
+    for (const auto& perf_note : performance_notes) {
         if (performance_aligned.find(perf_note.id) == performance_aligned.end()) {
             alignment.emplace_back(Alignment::Label::INSERTION, "", perf_note.id);
         }

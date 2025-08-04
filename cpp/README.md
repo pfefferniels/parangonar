@@ -1,15 +1,6 @@
 # Parangonar C++ Implementation
 
-This is a modern C++ port of the Parangonar symbolic music note alignment library. The C++ implementation focuses on the core AutomaticNoteMatcher algorithm and is designed to be compilable with emscripten for web deployment.
-
-## Features
-
-- **AutomaticNoteMatcher**: The main algorithm for aligning musical score and performance data
-- **Dynamic Time Warping (DTW)**: Multiple DTW variants including weighted DTW
-- **Preprocessors**: Note array cutting and alignment mending functionality  
-- **Evaluation**: F-score based evaluation of alignments
-- **Modern C++17**: Clean, efficient implementation using modern C++ features
-- **Emscripten Ready**: Can be compiled to WebAssembly for web deployment
+This is a C++ port of the Parangonar symbolic music note alignment library, derived using GitHub Copilot from the original Python parangonar project. The C++ implementation focuses on the core AutomaticNoteMatcher algorithm and is designed to be compilable with emscripten for web deployment.
 
 ## Building
 
@@ -187,16 +178,3 @@ emmake make
 
 # The resulting .wasm and .js files can be used in web applications
 ```
-
-## Performance
-
-The C++ implementation provides significant performance improvements over the Python version:
-
-- Zero-copy data structures where possible
-- Efficient STL containers and algorithms
-- Optional Eigen integration for optimized linear algebra
-- Minimal memory allocations during processing
-
-## Compatibility
-
-This implementation maintains API compatibility with the Python version while providing better performance and web deployment capabilities through emscripten compilation.

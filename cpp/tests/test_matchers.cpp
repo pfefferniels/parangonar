@@ -22,7 +22,7 @@ NoteArray create_test_score_notes() {
         notes.push_back(note);
     }
     
-    return NoteArray(notes);
+    return notes;
 }
 
 NoteArray create_test_performance_notes() {
@@ -44,7 +44,7 @@ NoteArray create_test_performance_notes() {
         notes.push_back(note);
     }
     
-    return NoteArray(notes);
+    return notes;
 }
 
 AlignmentVector create_ground_truth_alignment() {
@@ -68,16 +68,16 @@ void test_note_array() {
     assert(notes.size() == 8);
     
     // Test pitch filtering
-    auto c_notes = notes.filter_by_pitch(60);
+    auto c_notes = note_array::filter_by_pitch(notes, 60);
     assert(c_notes.size() == 1);
     assert(c_notes[0].pitch == 60);
     
     // Test unique pitches
-    auto unique_pitches = notes.unique_pitches();
+    auto unique_pitches = note_array::unique_pitches(notes);
     assert(unique_pitches.size() == 8);
     
     // Test onset times
-    auto onset_times = notes.onset_times_beat();
+    auto onset_times = note_array::onset_times_beat(notes);
     assert(onset_times.size() == 8);
     assert(std::abs(onset_times[0] - 0.0f) < 1e-6f);
     assert(std::abs(onset_times[1] - 0.5f) < 1e-6f);

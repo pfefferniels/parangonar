@@ -17,8 +17,8 @@ TimeAlignmentVector alignment_times_from_dtw(
     int p_time_div) {
     
     // Compute piano rolls
-    auto s_pianoroll = score_notes.compute_pianoroll(s_time_div, false);
-    auto p_pianoroll = performance_notes.compute_pianoroll(p_time_div, false);
+    auto s_pianoroll = note_array::compute_pianoroll(score_notes, s_time_div, false);
+    auto p_pianoroll = note_array::compute_pianoroll(performance_notes, p_time_div, false);
     
     // Make performance piano roll binary
     for (auto& row : p_pianoroll) {
@@ -128,19 +128,19 @@ std::pair<std::vector<NoteArray>, std::vector<NoteArray>> cut_note_arrays(
         
         // Filter score notes
         NoteArray window_score_notes;
-        for (const auto& note : score_notes.notes) {
+        for (const auto& note : score_notes) {
             if (note.onset_beat >= window_start_score - score_margin &&
                 note.onset_beat <= window_end_score + score_margin) {
-                window_score_notes.notes.push_back(note);
+                window_score_notes.push_back(note);
             }
         }
         
         // Filter performance notes
         NoteArray window_perf_notes;
-        for (const auto& note : performance_notes.notes) {
+        for (const auto& note : performance_notes) {
             if (note.onset_sec >= window_start_perf - perf_margin &&
                 note.onset_sec <= window_end_perf + perf_margin) {
-                window_perf_notes.notes.push_back(note);
+                window_perf_notes.push_back(note);
             }
         }
         
@@ -199,13 +199,13 @@ AlignmentVector mend_note_alignments(
     }
     
     // Add any unaligned notes as insertions or deletions
-    for (const auto& note : score_notes.notes) {
+    for (const auto& note : score_notes) {
         if (used_score_ids.find(note.id) == used_score_ids.end()) {
             global_alignment.emplace_back(Alignment::Label::DELETION, note.id);
         }
     }
     
-    for (const auto& note : performance_notes.notes) {
+    for (const auto& note : performance_notes) {
         if (used_perf_ids.find(note.id) == used_perf_ids.end()) {
             global_alignment.emplace_back(Alignment::Label::INSERTION, "", note.id);
         }

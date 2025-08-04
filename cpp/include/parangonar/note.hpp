@@ -34,52 +34,50 @@ struct Note {
     std::string id;
     int divs_pq = 16;
     
-    // Constructor for score notes
-    Note(float onset_beat, float duration_beat, int pitch, const std::string& id)
-        : onset_beat(onset_beat), duration_beat(duration_beat), pitch(pitch), id(id) {}
-    
-    // Constructor for performance notes
-    Note(float onset_sec, float duration_sec, int pitch, int velocity, const std::string& id)
-        : onset_sec(onset_sec), duration_sec(duration_sec), pitch(pitch), velocity(velocity), id(id) {}
-    
     // Default constructor
     Note() = default;
+    
+    // Static factory functions for clarity
+    static Note score_note(float onset_beat, float duration_beat, int pitch, const std::string& id = "") {
+        Note note;
+        note.onset_beat = onset_beat;
+        note.duration_beat = duration_beat;
+        note.pitch = pitch;
+        note.id = id;
+        return note;
+    }
+    
+    static Note performance_note(float onset_sec, float duration_sec, int pitch, int velocity, const std::string& id = "") {
+        Note note;
+        note.onset_sec = onset_sec;
+        note.duration_sec = duration_sec;
+        note.pitch = pitch;
+        note.velocity = velocity;
+        note.id = id;
+        return note;
+    }
 };
 
-/**
- * Collection of notes with utility methods
- */
-class NoteArray {
-public:
-    std::vector<Note> notes;
-    
-    NoteArray() = default;
-    NoteArray(const std::vector<Note>& notes) : notes(notes) {}
-    
-    size_t size() const { return notes.size(); }
-    bool empty() const { return notes.empty(); }
-    
-    Note& operator[](size_t idx) { return notes[idx]; }
-    const Note& operator[](size_t idx) const { return notes[idx]; }
-    
-    auto begin() { return notes.begin(); }
-    auto end() { return notes.end(); }
-    auto begin() const { return notes.begin(); }
-    auto end() const { return notes.end(); }
-    
-    // Filter notes by pitch
-    NoteArray filter_by_pitch(int pitch) const;
-    
-    // Get unique pitches
-    std::vector<int> unique_pitches() const;
-    
-    // Get onset times (score or performance)
-    std::vector<float> onset_times_beat() const;
-    std::vector<float> onset_times_sec() const;
-    
-    // Create piano roll representation
-    std::vector<std::vector<float>> compute_pianoroll(int time_div = 16, bool remove_drums = false) const;
-};
+// Type alias for note collections
+using NoteArray = std::vector<Note>;
+
+// Helper functions for note arrays
+namespace note_array {
+
+// Filter notes by pitch
+NoteArray filter_by_pitch(const NoteArray& notes, int pitch);
+
+// Get unique pitches
+std::vector<int> unique_pitches(const NoteArray& notes);
+
+// Get onset times (score or performance)
+std::vector<float> onset_times_beat(const NoteArray& notes);
+std::vector<float> onset_times_sec(const NoteArray& notes);
+
+// Create piano roll representation
+std::vector<std::vector<float>> compute_pianoroll(const NoteArray& notes, int time_div = 16, bool remove_drums = false);
+
+} // namespace note_array
 
 /**
  * Represents an alignment between score and performance notes
