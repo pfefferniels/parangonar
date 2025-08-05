@@ -1,9 +1,12 @@
 #include <parangonar/preprocessors.hpp>
+#include <parangonar/matchers.hpp>
 #include <algorithm>
 #include <set>
+#include <map>
 #include <cmath>
 #include <stdexcept>
 #include <numeric>
+#include <limits>
 
 namespace parangonar {
 namespace preprocessors {
@@ -160,45 +163,120 @@ AlignmentVector mend_note_alignments(
     
     AlignmentVector global_alignment;
     
-    // Simple strategy: concatenate all alignments and remove duplicates
+    // Collect all matches, keeping track of conflicts
+    std::map<std::string, std::vector<std::pair<int, std::string>>> score_to_perf_candidates; // score_id -> [(window_id, perf_id)]
+    std::map<std::string, std::vector<std::pair<int, std::string>>> perf_to_score_candidates; // perf_id -> [(window_id, score_id)]
+    std::set<std::string> deleted_scores;
+    std::set<std::string> inserted_perfs;
+    
+    // Collect all potential matches and conflicts
+    for (size_t window_id = 0; window_id < note_alignments.size(); ++window_id) {
+        for (const auto& align : note_alignments[window_id]) {
+            if (align.label == Alignment::Label::MATCH) {
+                score_to_perf_candidates[align.score_id].emplace_back(window_id, align.performance_id);
+                perf_to_score_candidates[align.performance_id].emplace_back(window_id, align.score_id);
+            } else if (align.label == Alignment::Label::DELETION) {
+                deleted_scores.insert(align.score_id);
+            } else if (align.label == Alignment::Label::INSERTION) {
+                inserted_perfs.insert(align.performance_id);
+            }
+        }
+    }
+    
     std::set<std::string> used_score_ids;
     std::set<std::string> used_perf_ids;
     
-    for (const auto& window_alignment : note_alignments) {
-        for (const auto& align : window_alignment) {
-            bool is_duplicate = false;
-            
-            if (align.label == Alignment::Label::MATCH) {
-                if (used_score_ids.count(align.score_id) || 
-                    used_perf_ids.count(align.performance_id)) {
-                    is_duplicate = true;
+    // Resolve matches, preferring earlier windows for conflicts
+    for (const auto& [score_id, candidates] : score_to_perf_candidates) {
+        if (candidates.size() == 1) {
+            // Unique match - easy case
+            const auto& [window_id, perf_id] = candidates[0];
+            if (perf_to_score_candidates[perf_id].size() == 1) {
+                // Mutual unique match - accept it
+                global_alignment.emplace_back(Alignment::Label::MATCH, score_id, perf_id);
+                used_score_ids.insert(score_id);
+                used_perf_ids.insert(perf_id);
+            } else {
+                // Performance note has multiple score candidates - need to resolve
+                // Choose the candidate from the earliest window
+                const auto& perf_candidates = perf_to_score_candidates[perf_id];
+                int best_window = std::numeric_limits<int>::max();
+                std::string best_score;
+                for (const auto& [win_id, cand_score_id] : perf_candidates) {
+                    if (win_id < best_window && used_score_ids.find(cand_score_id) == used_score_ids.end()) {
+                        best_window = win_id;
+                        best_score = cand_score_id;
+                    }
                 }
-            } else if (align.label == Alignment::Label::DELETION) {
-                if (used_score_ids.count(align.score_id)) {
-                    is_duplicate = true;
-                }
-            } else if (align.label == Alignment::Label::INSERTION) {
-                if (used_perf_ids.count(align.performance_id)) {
-                    is_duplicate = true;
+                if (!best_score.empty() && used_perf_ids.find(perf_id) == used_perf_ids.end()) {
+                    global_alignment.emplace_back(Alignment::Label::MATCH, best_score, perf_id);
+                    used_score_ids.insert(best_score);
+                    used_perf_ids.insert(perf_id);
                 }
             }
-            
-            if (!is_duplicate) {
-                global_alignment.push_back(align);
-                
-                if (align.label == Alignment::Label::MATCH) {
+        } else {
+            // Score note has multiple performance candidates - choose the best one
+            // Find the candidate from the earliest window with an available performance note
+            int best_window = std::numeric_limits<int>::max();
+            std::string best_perf;
+            for (const auto& [window_id, perf_id] : candidates) {
+                if (window_id < best_window && used_perf_ids.find(perf_id) == used_perf_ids.end()) {
+                    // Also check if this performance note doesn't have a better score candidate
+                    bool is_best_for_perf = true;
+                    const auto& perf_candidates = perf_to_score_candidates[perf_id];
+                    for (const auto& [other_win_id, other_score_id] : perf_candidates) {
+                        if (other_win_id < window_id && used_score_ids.find(other_score_id) == used_score_ids.end()) {
+                            is_best_for_perf = false;
+                            break;
+                        }
+                    }
+                    if (is_best_for_perf) {
+                        best_window = window_id;
+                        best_perf = perf_id;
+                    }
+                }
+            }
+            if (!best_perf.empty() && used_score_ids.find(score_id) == used_score_ids.end()) {
+                global_alignment.emplace_back(Alignment::Label::MATCH, score_id, best_perf);
+                used_score_ids.insert(score_id);
+                used_perf_ids.insert(best_perf);
+            }
+        }
+    }
+    
+    // Add greedy fallback for unmatched notes with similar pitches nearby
+    SimplestGreedyMatcher greedy_fallback;
+    
+    // Create arrays of unmatched notes
+    NoteArray unmatched_score_notes, unmatched_perf_notes;
+    for (const auto& note : score_notes) {
+        if (used_score_ids.find(note.id) == used_score_ids.end()) {
+            unmatched_score_notes.push_back(note);
+        }
+    }
+    for (const auto& note : performance_notes) {
+        if (used_perf_ids.find(note.id) == used_perf_ids.end()) {
+            unmatched_perf_notes.push_back(note);
+        }
+    }
+    
+    // Try greedy matching on remaining notes
+    if (!unmatched_score_notes.empty() && !unmatched_perf_notes.empty()) {
+        auto fallback_alignment = greedy_fallback(unmatched_score_notes, unmatched_perf_notes);
+        for (const auto& align : fallback_alignment) {
+            if (align.label == Alignment::Label::MATCH) {
+                // Only add if both notes are still unmatched
+                if (used_score_ids.find(align.score_id) == used_score_ids.end() &&
+                    used_perf_ids.find(align.performance_id) == used_perf_ids.end()) {
+                    global_alignment.push_back(align);
                     used_score_ids.insert(align.score_id);
-                    used_perf_ids.insert(align.performance_id);
-                } else if (align.label == Alignment::Label::DELETION) {
-                    used_score_ids.insert(align.score_id);
-                } else if (align.label == Alignment::Label::INSERTION) {
                     used_perf_ids.insert(align.performance_id);
                 }
             }
         }
     }
     
-    // Add any unaligned notes as insertions or deletions
+    // Add final deletions and insertions for truly unmatched notes
     for (const auto& note : score_notes) {
         if (used_score_ids.find(note.id) == used_score_ids.end()) {
             global_alignment.emplace_back(Alignment::Label::DELETION, note.id);
