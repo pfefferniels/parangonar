@@ -31,6 +31,7 @@ add_library(parangonar_cpp
     cpp/src/dtw.cpp
     cpp/src/matchers.cpp
     cpp/src/preprocessors.cpp
+    cpp/src/match_parser.cpp
 )
 
 # Add WASM bindings library for Emscripten builds
@@ -40,6 +41,7 @@ if(EMSCRIPTEN)
         cpp/src/dtw.cpp
         cpp/src/matchers.cpp
         cpp/src/preprocessors.cpp
+        cpp/src/match_parser.cpp
         cpp/src/wasm_bindings.cpp
     )
     
@@ -78,10 +80,18 @@ add_executable(test_wasm_api
 
 target_link_libraries(test_wasm_api parangonar_cpp)
 
+# Add Mozart alignment test
+add_executable(test_mozart_alignment
+    cpp/tests/test_mozart_alignment.cpp
+)
+
+target_link_libraries(test_mozart_alignment parangonar_cpp)
+
 # Enable testing
 enable_testing()
 add_test(NAME parangonar_tests COMMAND test_parangonar_cpp)
 add_test(NAME wasm_api_tests COMMAND test_wasm_api)
+add_test(NAME mozart_alignment_tests COMMAND test_mozart_alignment)
 
 # Emscripten configuration
 if(EMSCRIPTEN)
