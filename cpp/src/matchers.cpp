@@ -99,10 +99,8 @@ SequenceAugmentedGreedyMatcher::CombinationResult SequenceAugmentedGreedyMatcher
             }
         } else {
             // Generate all combinations
-            std::vector<size_t> indices(n_long);
-            std::iota(indices.begin(), indices.end(), 0);
             std::vector<bool> selector(n_long, false);
-            std::fill(selector.begin(), selector.begin() + extra_notes, true);
+            std::fill(selector.end() - extra_notes, selector.end(), true);
             
             do {
                 std::vector<size_t> combination;

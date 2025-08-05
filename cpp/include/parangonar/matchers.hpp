@@ -58,7 +58,7 @@ struct AutomaticNoteMatcherConfig {
     int window_size = 1;
     bool pfuzziness_relative_to_tempo = true;
     bool shift_onsets = false;
-    int cap_combinations = 100;
+    int cap_combinations = 10000;
 };
 
 /**
@@ -75,12 +75,12 @@ private:
     float score_fine_node_length_ = 0.25f;
     int s_time_div_ = 16;
     int p_time_div_ = 16;
-    float sfuzziness_ = 4.0f;
-    float pfuzziness_ = 4.0f;
+    float sfuzziness_ = 8.0f;
+    float pfuzziness_ = 8.0f;
     int window_size_ = 1;
     bool pfuzziness_relative_to_tempo_ = true;
     bool shift_onsets_ = false;
-    int cap_combinations_ = 100;
+    int cap_combinations_ = 10000;
     
 public:
     using Config = AutomaticNoteMatcherConfig;
